@@ -85,6 +85,15 @@ public:
   void showFree();
 
 private:
+  /**
+   * @brief Determine if block is already in free list or not
+   *
+   * @param p Pointer to look for in free list
+   * @return true Block is present in the list
+   * @return false Block is not present in the list
+   */
+  bool inChain(void *p);
+
   /** @brief Block size for this allocator */
   size_t m_blockSize;
   /** @brief Number of blocks available to the allocator */

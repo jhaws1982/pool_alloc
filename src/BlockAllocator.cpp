@@ -74,43 +74,74 @@ bool BlockAllocator::releaseBlock(void *p)
 {
   bool released = false;
 
-  // Calculate whether the provided address falls within the allocator space
-  size_t diff = reinterpret_cast<uint8_t *>(p) -
-                reinterpret_cast<uint8_t *>(m_startBlock);
-#if defined(DEBUG) && 0
-  std::cout << "p: " << p << std::endl;
-  std::cout << "a: " << m_startBlock << std::endl;
-  std::cout << "p - allocator[i].start = " << diff << " < "
-            << (m_blockSize * m_numBlocks) << std::endl;
-#endif
-
-  // Check that the provided address is inside the memory block of the allocator
-  if ((p >= m_startBlock) && (diff < (m_blockSize * m_numBlocks)))
+  // Check for a block that we already think is free (i.e. someone is
+  // double-calling release)
+  if (inChain(p))
   {
     released = true;
-    MemoryBlock *block = reinterpret_cast<MemoryBlock *>(p);
+  }
+  else
+  {
+    // Calculate whether the provided address falls within the allocator space
+    size_t diff = reinterpret_cast<uint8_t *>(p) -
+                  reinterpret_cast<uint8_t *>(m_startBlock);
+#if defined(DEBUG) && 0
+    std::cout << "p: " << p << std::endl;
+    std::cout << "a: " << m_startBlock << std::endl;
+    std::cout << "p - allocator[i].start = " << diff << " < "
+              << (m_blockSize * m_numBlocks) << std::endl;
+#endif
 
-    // Scoped lock to protect updates to block pointer
-    std::lock_guard<std::mutex> lk(m_lock);
-    // Link the released block to the beginning of the list
-    block->m_next = m_freeBlock;
-    // Set the next block pointer at the recently released block
-    m_freeBlock = block;
+    // Check that the provided address is inside the memory block of the
+    // allocator
+    if ((p >= m_startBlock) && (diff < (m_blockSize * m_numBlocks)))
+    {
+      released = true;
+      MemoryBlock *block = reinterpret_cast<MemoryBlock *>(p);
+
+      // Scoped lock to protect updates to block pointer
+      std::lock_guard<std::mutex> lk(m_lock);
+      // Link the released block to the beginning of the list
+      block->m_next = m_freeBlock;
+      // Set the next block pointer at the recently released block
+      m_freeBlock = block;
 
 #ifdef DEBUG
-    std::cout << " ** Freed block @ " << p << " back to allocator of size "
-              << m_blockSize << std::endl;
-    showFree();
+      std::cout << " ** Freed block @ " << p << " back to allocator of size "
+                << m_blockSize << std::endl;
+      showFree();
 #endif
+    }
   }
 
   return released;
 }
 
+bool BlockAllocator::inChain(void *p)
+{
+  bool present = false;
+
+  auto block = m_freeBlock;
+  while (block)
+  {
+#ifdef DEBUG
+    std::cout << " ** Checking " << p << " against " << block << std::endl;
+#endif
+    if (p == block)
+    {
+      present = true;
+      break;
+    }
+    block = block->m_next;
+  }
+
+  return present;
+}
+
 void BlockAllocator::showFree()
 {
 #ifdef DEBUG
-#if 0
+#if 1
   std::cout << " ** Free blocks of size " << m_blockSize << std::endl;
   auto block = m_freeBlock;
   while (nullptr != block)
