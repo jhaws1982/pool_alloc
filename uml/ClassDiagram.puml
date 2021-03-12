@@ -1,0 +1,67 @@
+@startuml
+
+
+
+
+
+/' Objects '/
+
+class BlockAllocator {
+	+BlockAllocator(size_t blockSize, uint32_t numBytes, MemoryBlock* p)
+	+BlockAllocator()
+	+BlockAllocator(const BlockAllocator& ma)
+	+~BlockAllocator()
+	+operator=(const BlockAllocator& ma) : BlockAllocator&
+	+allocateBlock() : MemoryBlock*
+	+getStartAddress() : MemoryBlock*
+	+releaseBlock(void* p) : bool
+	+getBlockSize() : size_t
+	-m_blockSize : size_t
+	-m_numBlocks : size_t
+	-m_lock : std::mutex
+	+showFree() : void
+}
+
+
+class MemoryBlock {
+}
+
+
+class MemoryPool {
+	-MemoryPool(size_t* blockSize, const size_t nSizes)
+	-m_allocator : BlockAllocator
+	+{static} getPool(size_t* blockSize, const size_t nSizes) : MemoryPool&
+	+isInitialized() : bool
+	-isPower2(size_t val) : bool
+	-{static} POOLSIZE_BYTES : static constexpr uint32_t
+	-{static} BLKCNT_MAX : static constexpr uint8_t
+	-{static} s_pool_heap : static uint8_t
+	+release(void* p) : void
+	-sortArray(size_t* array, const size_t nElements) : void
+	+allocate(size_t n) : void*
+}
+
+
+
+
+
+/' Inheritance relationships '/
+
+
+
+
+/' Aggregation relationships '/
+
+.MemoryPool *-- .BlockAllocator
+
+
+
+
+
+
+/' Nested objects '/
+
+
+
+@enduml
+

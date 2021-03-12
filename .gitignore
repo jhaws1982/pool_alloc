@@ -1,3 +1,7 @@
+# Build/temp/IDE directories
+_*
+.vscode
+
 # Prerequisites
 *.d
 
