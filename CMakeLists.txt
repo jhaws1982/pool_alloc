@@ -41,3 +41,9 @@ target_link_libraries(${PROJECT_NAME} mempool)
 project(allocFailure)
 add_executable(${PROJECT_NAME} tests/allocationFailure.cpp)
 target_link_libraries(${PROJECT_NAME} mempool)
+
+
+##############################################################################
+project(smallBlockSize)
+add_executable(${PROJECT_NAME} tests/smallBlockSize.cpp)
+target_link_libraries(${PROJECT_NAME} mempool)

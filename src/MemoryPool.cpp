@@ -155,6 +155,18 @@ bool MemoryPool::scrubBlockSizes(const size_t *blockSize, const size_t nSizes)
       m_initialized = false;
       return false;
     }
+
+    // 5. Ensure that block sizes are larger that smallest memory block
+    if (blockSize[i] < sizeof(MemoryBlock *))
+    {
+#ifdef DEBUG
+      std::cerr << " !! Block size [" << i << "]: " << blockSize[i]
+                << " is less than minimum block size (" << sizeof(MemoryBlock *)
+                << ")!" << std::endl;
+#endif
+      m_initialized = false;
+      return false;
+    }
   }
 
   return true;
